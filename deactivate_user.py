@@ -7,7 +7,7 @@ load_dotenv()
 
 ORG_URL = os.getenv("OKTA_ORG_URL")
 TOKEN = os.getenv("OKTA_API_TOKEN")
-USER_ID = "00u16wwhsbdL7x1AI698"
+USER_ID = "insert_user_id_here"
 
 headers = {
     "Authorization": f"SSWS {TOKEN}",
