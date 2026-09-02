@@ -3,6 +3,7 @@ import os
 import requests
 from dotenv import load_dotenv
 from role_mapping import ROLE_TO_GROUPS
+from audit import log_action
 
 load_dotenv()
 
@@ -49,10 +50,16 @@ def provision_user(first_name, last_name, email, role):
     user = create_user(first_name, last_name, email)
     user_id = user["id"]
     print(f"Created user: {user_id} — {user['status']}")
+    log_action("CREATE", user_id=user_id, user_email=email, detail=f"Role: {role}")
 
     for group_id in ROLE_TO_GROUPS[role]:
-        assign_to_group(user_id, group_id)
-        print(f"  Assigned to group: {group_id}")
+        try:
+            assign_to_group(user_id, group_id)
+            print(f"  Assigned to group: {group_id}")
+            log_action("GROUP_ASSIGN", user_id=user_id, user_email=email, detail=f"Group: {group_id}")
+        except requests.exceptions.HTTPError as e:
+            print(f"  FAILED to assign group {group_id}: {e}")
+            log_action("GROUP_ASSIGN", user_id=user_id, user_email=email, detail=f"Group: {group_id}", status="FAILURE")
 
     print(f"Provisioning complete for {email} as {role}")
     return user_id
@@ -60,8 +67,8 @@ def provision_user(first_name, last_name, email, role):
 
 if __name__ == "__main__":
     provision_user(
-        first_name="Jane",
-        last_name="Doe",
-        email="jane.doe@example.com",
+        first_name="Test",
+        last_name="Auditor",
+        email="test.auditor@example.com",
         role="Standard Employee"
     )
