@@ -47,7 +47,13 @@ def provision_user(first_name, last_name, email, role):
     if role not in ROLE_TO_GROUPS:
         raise ValueError(f"Unknown role: {role}")
 
-    user = create_user(first_name, last_name, email)
+    try:
+        user = create_user(first_name, last_name, email)
+    except requests.exceptions.HTTPError as e:
+        print(f"FAILED to create user: {e}")
+        log_action("CREATE", user_id=None, user_email=email, detail=f"Role: {role} — creation failed", status="FAILURE")
+        return None
+
     user_id = user["id"]
     print(f"Created user: {user_id} — {user['status']}")
     log_action("CREATE", user_id=user_id, user_email=email, detail=f"Role: {role}")
